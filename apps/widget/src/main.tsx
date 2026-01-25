@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+import styles from './index.css?inline'
 import App from './App.tsx'
 
 class ChatterlyWidget {
@@ -19,16 +19,16 @@ class ChatterlyWidget {
 
     // Create shadow root for style isolation
     const shadow = container.attachShadow({ mode: 'open' })
+
+    // Inject styles
+    const styleSheet = document.createElement('style')
+    styleSheet.textContent = styles
+    shadow.appendChild(styleSheet)
     
     // Create mount point inside shadow DOM
     const mountPoint = document.createElement('div')
     mountPoint.id = 'chatterly-root'
     shadow.appendChild(mountPoint)
-
-    // Inject styles manually if needed, or rely on vite-plugin-css-injected-by-js
-    // Note: vite-plugin-css-injected-by-js injects into document.head by default.
-    // To support Shadow DOM, we might need to manually move styles or use a different approach later.
-    // For now, let's render.
 
     // Get config from script tag
     const scriptTag = document.currentScript || document.querySelector('script[data-widget-id]')
