@@ -34,6 +34,7 @@ class ChatterlyWidget {
     const scriptTag = document.currentScript || document.querySelector('script[data-widget-id]')
     const widgetId = scriptTag?.getAttribute('data-widget-id')
     const publicKey = scriptTag?.getAttribute('data-public-key')
+    const apiUrl = scriptTag?.getAttribute('data-api-url')
 
     if (!widgetId || !publicKey) {
       console.warn('Chatterly Widget: Missing widget-id or public-key')
@@ -41,7 +42,7 @@ class ChatterlyWidget {
 
     createRoot(mountPoint).render(
       <StrictMode>
-        <App widgetId={widgetId} publicKey={publicKey} />
+        <App widgetId={widgetId} publicKey={publicKey} apiUrl={apiUrl} />
       </StrictMode>,
     )
   }

@@ -34,12 +34,18 @@ export default function WidgetDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
+  const widgetScriptUrl =
+    process.env.NEXT_PUBLIC_WIDGET_SCRIPT_URL?.trim() || "http://localhost:5174/dist/widget.js"
+  const widgetApiUrl =
+    process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:3001/api"
 
   // Form State
   const [formData, setFormData] = useState({
     name: '',
     systemPrompt: '',
-    allowedDomains: ''
+    allowedDomains: '',
+    developmentMode: true,
+    enabled: true
   })
 
   useEffect(() => {
@@ -53,7 +59,9 @@ export default function WidgetDetailPage() {
         setFormData({
           name: data.widget.name,
           systemPrompt: data.widget.systemPrompt,
-          allowedDomains: data.widget.allowedDomains.join(', ')
+          allowedDomains: data.widget.allowedDomains.join(', '),
+          developmentMode: data.widget.allowedDomains.length === 0,
+          enabled: data.widget.enabled
         })
       } catch (err: any) {
         console.error(err)
@@ -78,12 +86,19 @@ export default function WidgetDetailPage() {
         .map(d => d.trim())
         .filter(d => d.length > 0)
 
+      if (!formData.developmentMode && domains.length === 0) {
+        setError("Add at least one allowed domain or enable Development mode.")
+        setSaving(false)
+        return
+      }
+
       const data = await fetchWithAuth(`/widgets/${params?.id}`, token, {
         method: 'PUT',
         body: JSON.stringify({
           name: formData.name,
           systemPrompt: formData.systemPrompt,
-          allowedDomains: domains
+          allowedDomains: formData.developmentMode ? [] : domains,
+          enabled: formData.enabled
         })
       })
       
@@ -125,7 +140,7 @@ export default function WidgetDetailPage() {
   }
 
   const copyEmbedCode = () => {
-    const code = `<script src="https://cdn.example.com/widget.js" data-widget-id="${widget?.id}" data-public-key="${widget?.publicApiKey}"></script>`
+    const code = `<script async src="${widgetScriptUrl}" data-widget-id="${widget?.id}" data-public-key="${widget?.publicApiKey}" data-api-url="${widgetApiUrl}"></script>`
     navigator.clipboard.writeText(code)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -136,6 +151,8 @@ export default function WidgetDetailPage() {
   }
 
   if (!widget) return <div className="container mx-auto py-10">Widget not found</div>
+
+  const embedCode = `<script async src="${widgetScriptUrl}" \n data-widget-id="${widget.id}" \n data-public-key="${widget.publicApiKey}" \n data-api-url="${widgetApiUrl}"></script>`
 
   return (
     <div className="container mx-auto py-10 max-w-4xl">
@@ -179,11 +196,46 @@ export default function WidgetDetailPage() {
                     </div>
 
                     <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formData.enabled}
+                                onChange={e => setFormData({
+                                    ...formData,
+                                    enabled: e.target.checked
+                                })}
+                            />
+                            Widget Enabled
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                            Disable this to block all chat requests for this widget.
+                        </p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formData.developmentMode}
+                                onChange={e => setFormData({
+                                    ...formData,
+                                    developmentMode: e.target.checked
+                                })}
+                            />
+                            Development Mode (Allow all domains)
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                            Use this for local testing. Disable it to restrict the widget to specific domains.
+                        </p>
+                    </div>
+
+                    <div className="space-y-2">
                         <Label htmlFor="allowedDomains">Allowed Domains</Label>
                         <Input 
                             id="allowedDomains" 
                             value={formData.allowedDomains} 
                             onChange={e => setFormData({...formData, allowedDomains: e.target.value})} 
+                            disabled={formData.developmentMode}
                         />
                         <p className="text-xs text-muted-foreground">Comma separated.</p>
                     </div>
@@ -225,7 +277,7 @@ export default function WidgetDetailPage() {
                         <Label className="text-xs font-semibold uppercase text-muted-foreground">Embed Code</Label>
                         <div className="mt-1 relative">
                             <pre className="bg-slate-950 text-slate-50 p-3 rounded text-xs overflow-x-auto whitespace-pre-wrap break-all">
-                                {`<script src="https://cdn.example.com/widget.js" \n data-widget-id="${widget.id}" \n data-public-key="${widget.publicApiKey}"></script>`}
+                                {embedCode}
                             </pre>
                             <Button size="icon" variant="ghost" className="absolute top-1 right-1 text-white hover:text-white hover:bg-white/20" onClick={copyEmbedCode}>
                                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

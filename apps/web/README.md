@@ -20,6 +20,24 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Widget script tag setup
+
+The widget embed code shown on `dashboard/widgets/[id]` uses:
+
+- `NEXT_PUBLIC_WIDGET_SCRIPT_URL` (if set)
+- fallback: `http://localhost:5174/dist/widget.js`
+
+For local testing:
+
+1. Build widget bundle from `apps/widget`:
+   - `bun run build`
+2. Serve the `apps/widget` directory on port `5174`:
+   - `python3 -m http.server 5174`
+3. Start this Next.js app:
+   - `bun dev`
+
+With this running, newly created widgets will show a copyable script tag pointing to a working widget script URL.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

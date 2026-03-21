@@ -1,0 +1,36 @@
+name: Deploy API (VPS)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "packages/db/**"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/deploy-api-vps.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy API over SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            cd /srv/chatterly-v2
+            git fetch --all
+            git reset --hard origin/main
+            bun install --frozen-lockfile
+            cd packages/db
+            bunx prisma migrate deploy
+            bunx prisma generate
+            cd /srv/chatterly-v2
+            sudo systemctl restart chatterly-api
+            sudo systemctl status chatterly-api --no-pager

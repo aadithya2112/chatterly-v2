@@ -5,18 +5,41 @@ import { requireAuth, requireWidgetOwnership } from '../middleware/auth'
 import crypto from 'crypto'
 
 export async function widgetRoutes(server: FastifyInstance) {
+  const domainEntrySchema = z.string().min(1).transform((value, ctx) => {
+    const trimmed = value.trim()
+    const maybeUrl = /^[a-z]+:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+
+    try {
+      const url = new URL(maybeUrl)
+      const protocol = url.protocol.toLowerCase()
+      const host = url.hostname.toLowerCase()
+      const defaultPort = protocol === 'https:' ? '443' : protocol === 'http:' ? '80' : ''
+      const port = url.port || defaultPort
+      const showPort =
+        (protocol === 'https:' && port !== '443') || (protocol === 'http:' && port !== '80')
+
+      return `${protocol}//${host}${showPort ? `:${port}` : ''}`
+    } catch {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Each domain must be a valid hostname or URL',
+      })
+      return z.NEVER
+    }
+  })
+
   // Schema for creating a widget
   const createWidgetSchema = z.object({
     name: z.string().min(1).max(100),
     systemPrompt: z.string().min(1).max(5000),
-    allowedDomains: z.array(z.string().url()).optional().default([]),
+    allowedDomains: z.array(domainEntrySchema).optional().default([]),
   })
 
   // Schema for updating a widget
   const updateWidgetSchema = z.object({
     name: z.string().min(1).max(100).optional(),
     systemPrompt: z.string().min(1).max(5000).optional(),
-    allowedDomains: z.array(z.string().url()).optional(),
+    allowedDomains: z.array(domainEntrySchema).optional(),
     enabled: z.boolean().optional(),
   })
 

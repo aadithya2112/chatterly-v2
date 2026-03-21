@@ -21,7 +21,8 @@ export default function NewWidgetPage() {
   const [formData, setFormData] = useState({
     name: '',
     systemPrompt: 'You are a helpful AI assistant for my website visitors.',
-    allowedDomains: ''
+    allowedDomains: '',
+    developmentMode: true
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,12 +39,18 @@ export default function NewWidgetPage() {
         .map(d => d.trim())
         .filter(d => d.length > 0)
 
+      if (!formData.developmentMode && domains.length === 0) {
+        setError("Add at least one allowed domain or enable Development mode.")
+        setLoading(false)
+        return
+      }
+
       const res = await fetchWithAuth('/widgets', token, {
         method: 'POST',
         body: JSON.stringify({
           name: formData.name,
           systemPrompt: formData.systemPrompt,
-          allowedDomains: domains
+          allowedDomains: formData.developmentMode ? [] : domains
         })
       })
 
@@ -102,14 +109,34 @@ export default function NewWidgetPage() {
             </div>
 
             <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.developmentMode}
+                  onChange={e => setFormData({
+                    ...formData,
+                    developmentMode: e.target.checked
+                  })}
+                />
+                Development Mode (Allow all domains)
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Use this for local testing. Disable it to restrict the widget to specific domains.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="allowedDomains">Allowed Domains (Optional)</Label>
               <Input 
                 id="allowedDomains" 
                 placeholder="https://example.com, https://app.example.com" 
                 value={formData.allowedDomains}
                 onChange={e => setFormData({...formData, allowedDomains: e.target.value})}
+                disabled={formData.developmentMode}
               />
-              <p className="text-xs text-muted-foreground">Comma-separated list of domains where this widget can be embedded.</p>
+              <p className="text-xs text-muted-foreground">
+                Comma-separated list of domains where this widget can be embedded.
+              </p>
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">

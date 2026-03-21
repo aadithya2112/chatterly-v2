@@ -1,10 +1,8 @@
-import { config } from "./env.js";
-
 export const rateLimitConfig = {
   global: true,
   max: 100,
   timeWindow: "1 minute",
-  hook: "preHandler",
+  hook: "preHandler" as const,
   cache: 10000,
 
   // Custom key generator for user-based limiting
@@ -35,9 +33,8 @@ export const widgetRateLimitConfig = {
   max: 10,
   timeWindow: "1 minute",
   keyGenerator: (request: any) => {
-    // Use both IP and widget ID for rate limiting
-    const widgetId = request.body?.widgetId || request.query?.widgetId;
-    return widgetId ? `${request.ip}:${widgetId}` : request.ip;
+    const widgetKey = request.headers?.["x-widget-key"];
+    return widgetKey ? `${request.ip}:${widgetKey}` : request.ip;
   },
   errorResponseBuilder: (request: any, context: any) => ({
     statusCode: 429,

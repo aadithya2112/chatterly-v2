@@ -2,6 +2,7 @@ import type { FastifyRequest, FastifyReply } from 'fastify'
 import { verifyToken } from '@clerk/backend'
 import { prisma } from '@repo/db'
 import { syncUserToDatabase } from '../lib/user'
+import { clerkAuthorizedParties } from '../config/env'
 
 export async function authenticateToken(
   request: FastifyRequest,
@@ -22,7 +23,7 @@ export async function authenticateToken(
     // Verify the Clerk JWT
     const payload = await verifyToken(token, {
       secretKey: process.env.CLERK_SECRET_KEY,
-      authorizedParties: ['http://localhost:3000', 'http://localhost:3001'],
+      authorizedParties: clerkAuthorizedParties,
     })
 
     if (!payload.sub) {

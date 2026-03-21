@@ -4,6 +4,7 @@ import { MessageCircle, X, Send, Loader2, Bot, User, Sparkles } from 'lucide-rea
 interface AppProps {
   widgetId?: string | null
   publicKey?: string | null
+  apiUrl?: string | null
 }
 
 interface Message {
@@ -11,7 +12,12 @@ interface Message {
   content: string
 }
 
-function App({ widgetId, publicKey }: AppProps) {
+function resolveChatUrl(apiUrl?: string | null): string {
+  const baseUrl = (apiUrl || 'http://localhost:3001/api').trim()
+  return `${baseUrl.replace(/\/$/, '')}/chat`
+}
+
+function App({ widgetId, publicKey, apiUrl }: AppProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: 'Hello! How can I help you today?' }
@@ -38,9 +44,7 @@ function App({ widgetId, publicKey }: AppProps) {
     setIsLoading(true)
 
     try {
-      const API_URL = 'http://localhost:3001/api/chat'; 
-      
-      const response = await fetch(API_URL, {
+      const response = await fetch(resolveChatUrl(apiUrl), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

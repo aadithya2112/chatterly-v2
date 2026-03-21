@@ -5,29 +5,24 @@ import rateLimit from '@fastify/rate-limit'
 import { requireAuth } from './middleware/auth'
 import { widgetRoutes } from './routes/widgets'
 import { chatRoutes } from './routes/chat'
-import dotenv from 'dotenv'
-
-dotenv.config()
+import { corsConfig } from './config/cors'
+import { config } from './config/env'
+import { rateLimitConfig } from './config/rate-limit'
 
 const server = Fastify({
   logger: true
 })
 
 async function main() {
+  // Load and validate environment before serving traffic.
+  void config
+
   // Register plugins
-  await server.register(cors, {
-    origin: (origin, cb) => {
-      // Allow all origins for now, specific logic would go here
-      cb(null, true)
-    }
-  })
+  await server.register(cors, corsConfig)
   
   await server.register(helmet)
   
-  await server.register(rateLimit, {
-    max: 100,
-    timeWindow: '1 minute'
-  })
+  await server.register(rateLimit, rateLimitConfig)
 
 
   // Health check
@@ -45,8 +40,8 @@ async function main() {
   })
 
   try {
-    const port = parseInt(process.env.PORT || '3001')
-    await server.listen({ port, host: '0.0.0.0' })
+    await server.listen({ port: config.PORT, host: config.HOST })
+    const port = config.PORT
     console.log(`Server listening on port ${port}`)
   } catch (err) {
     server.log.error(err)

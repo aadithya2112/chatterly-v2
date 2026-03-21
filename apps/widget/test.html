@@ -1,27 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chatterly Widget Test</title>
     <style>
-        body { font-family: system-ui, sans-serif; padding: 2rem; background: #f0f0f0; }
-        .content { max-width: 800px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+      body {
+        font-family: system-ui, sans-serif;
+        padding: 2rem;
+        background: #f0f0f0;
+      }
+      .content {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="content">
-        <h1>Welcome to My Website</h1>
-        <p>This is a demo page to test the Chatterly widget.</p>
-        <p>The widget should appear in the bottom right corner.</p>
+      <h1>Welcome to My Website</h1>
+      <p>This is a demo page to test the Chatterly widget.</p>
+      <p>The widget should appear in the bottom right corner.</p>
     </div>
 
     <!-- Chatterly Widget -->
     <!-- REPLACE data-public-key with a valid one if checking backend auth -->
-    <script 
-        src="./dist/widget.js" 
-        data-widget-id="test-widget-id" 
-        data-public-key="pk_live_TEST_KEY"
+    <script
+      src="http://localhost:5174/dist/widget.js"
+      data-widget-id="cmmzzhhgy00012w2lcn7jrrp8"
+      data-public-key="pk_live_76473bfc88f3f404200adf25de14e529"
+      data-api-url="http://localhost:3001/api"
     ></script>
-</body>
+  </body>
 </html>
