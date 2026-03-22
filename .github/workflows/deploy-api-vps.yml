@@ -27,7 +27,7 @@ jobs:
             cd /srv/chatterly-v2
             git fetch --all
             git reset --hard origin/main
-            bun install --frozen-lockfile
+            bun install --frozen-lockfile --production
             cd packages/db
             bunx prisma migrate deploy
             bunx prisma generate
