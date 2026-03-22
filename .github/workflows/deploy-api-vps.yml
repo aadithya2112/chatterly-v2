@@ -24,13 +24,22 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             set -e
+            [ -f ~/.bashrc ] && source ~/.bashrc
+            [ -f ~/.profile ] && source ~/.profile
+            export BUN_INSTALL="$HOME/.bun"
+            export PATH="$BUN_INSTALL/bin:$PATH"
+            if [ ! -x "$HOME/.bun/bin/bun" ]; then
+              echo "Bun not found for user $(whoami) at $HOME/.bun/bin/bun"
+              exit 1
+            fi
+            "$HOME/.bun/bin/bun" --version
             cd /srv/chatterly-v2
             git fetch --all
             git reset --hard origin/main
-            bun install --frozen-lockfile --production
+            "$HOME/.bun/bin/bun" install --frozen-lockfile --production
             cd packages/db
-            bunx prisma migrate deploy
-            bunx prisma generate
+            "$HOME/.bun/bin/bunx" prisma migrate deploy
+            "$HOME/.bun/bin/bunx" prisma generate
             cd /srv/chatterly-v2
             sudo systemctl restart chatterly-api
             sudo systemctl status chatterly-api --no-pager
